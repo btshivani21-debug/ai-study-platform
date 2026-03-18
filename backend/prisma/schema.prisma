@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  name          String         @db.VarChar(100)
+  email         String         @unique @db.VarChar(255)
+  password_hash String         @db.VarChar(255)
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+
+  refresh_tokens RefreshToken[]
+  video_progress VideoProgress[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  token      String   @unique @db.VarChar(500)
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Subject {
+  id           Int       @id @default(autoincrement())
+  title        String    @db.VarChar(200)
+  slug         String    @unique @db.VarChar(200)
+  description  String?   @db.Text
+  thumbnail    String?   @db.VarChar(500)
+  is_published Boolean   @default(true)
+  created_at   DateTime  @default(now())
+
+  sections Section[]
+
+  @@map("subjects")
+}
+
+model Section {
+  id          Int    @id @default(autoincrement())
+  subject_id  Int
+  title       String @db.VarChar(200)
+  order_index Int    @default(0)
+
+  subject Subject @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+  videos  Video[]
+
+  @@map("sections")
+}
+
+model Video {
+  id               Int    @id @default(autoincrement())
+  section_id       Int
+  title            String @db.VarChar(200)
+  description      String? @db.Text
+  youtube_url      String @db.VarChar(500)
+  order_index      Int    @default(0)
+  duration_seconds Int    @default(0)
+
+  section  Section         @relation(fields: [section_id], references: [id], onDelete: Cascade)
+  progress VideoProgress[]
+
+  @@map("videos")
+}
+
+model VideoProgress {
+  id                    Int       @id @default(autoincrement())
+  user_id               Int
+  video_id              Int
+  last_position_seconds Int       @default(0)
+  is_completed          Boolean   @default(false)
+  completed_at          DateTime?
+
+  user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  video Video @relation(fields: [video_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, video_id])
+  @@map("video_progress")
+}
