@@ -42,6 +42,20 @@ async function main() {
     },
   });
 
+  // Ensure seeding is repeatable by resetting previous course structure.
+  await prisma.video.deleteMany({
+    where: {
+      section: {
+        subject_id: { in: [python.id, dsa.id, webdev.id] },
+      },
+    },
+  });
+  await prisma.section.deleteMany({
+    where: {
+      subject_id: { in: [python.id, dsa.id, webdev.id] },
+    },
+  });
+
   // Python sections and videos
   const pyBasics = await prisma.section.create({
     data: {

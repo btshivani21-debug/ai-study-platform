@@ -4,6 +4,45 @@ import { AuthRequest, authMiddleware } from '../../middleware/authMiddleware';
 
 const router = Router();
 
+async function isVideoUnlocked(userId: number, videoId: number): Promise<boolean> {
+  const target = await prisma.video.findUnique({
+    where: { id: videoId },
+    include: {
+      section: {
+        select: { subject_id: true },
+      },
+    },
+  });
+
+  if (!target) {
+    return false;
+  }
+
+  const videosInSubject = await prisma.video.findMany({
+    where: { section: { subject_id: target.section.subject_id } },
+    orderBy: [{ section: { order_index: 'asc' } }, { order_index: 'asc' }],
+    select: { id: true },
+  });
+
+  const targetIndex = videosInSubject.findIndex((video) => video.id === videoId);
+  if (targetIndex <= 0) {
+    return true;
+  }
+
+  const previousVideoId = videosInSubject[targetIndex - 1].id;
+  const previousProgress = await prisma.videoProgress.findUnique({
+    where: {
+      user_id_video_id: {
+        user_id: userId,
+        video_id: previousVideoId,
+      },
+    },
+    select: { is_completed: true },
+  });
+
+  return Boolean(previousProgress?.is_completed);
+}
+
 // GET /api/progress/videos/:videoId
 router.get('/videos/:videoId', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
@@ -29,6 +68,12 @@ router.post('/videos/:videoId', authMiddleware, async (req: AuthRequest, res: Re
     const videoId = parseInt(req.params.videoId as string, 10);
     const userId = req.user!.userId;
     const { last_position_seconds, is_completed } = req.body;
+    const unlocked = await isVideoUnlocked(userId, videoId);
+
+    if (!unlocked) {
+      res.status(403).json({ error: 'Video is locked. Complete previous video first.' });
+      return;
+    }
 
     const progress = await prisma.videoProgress.upsert({
       where: {
