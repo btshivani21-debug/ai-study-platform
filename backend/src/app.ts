@@ -14,6 +14,7 @@ app.use(
   cors({
     origin: [
       'https://ai-study-platform-kh4u.vercel.app',
+      'https://ai-study-platform-kh4u-git-main-btshivani21-4163s-projects.vercel.app',
       'http://localhost:3000',
       'http://localhost:5173',
     ],
