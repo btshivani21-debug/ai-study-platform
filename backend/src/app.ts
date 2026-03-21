@@ -12,24 +12,14 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow non-browser tools (curl, Postman) and server-to-server requests.
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-
-      const isConfiguredOrigin = origin === env.FRONTEND_URL;
-      const isLocalDevOrigin = /^http:\/\/localhost:\d+$/.test(origin) || /^http:\/\/127\.0\.0\.1:\d+$/.test(origin);
-
-      if (isConfiguredOrigin || isLocalDevOrigin) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error('Not allowed by CORS'));
-    },
+    origin: [
+      'https://ai-study-platform-kh4u.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:5173',
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 app.use(express.json());
