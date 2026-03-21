@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
-const env_1 = require("./config/env");
 const errorHandler_1 = require("./middleware/errorHandler");
 const routes_1 = __importDefault(require("./modules/auth/routes"));
 const routes_2 = __importDefault(require("./modules/subjects/routes"));
@@ -14,8 +13,15 @@ const routes_3 = __importDefault(require("./modules/progress/routes"));
 const app = (0, express_1.default)();
 // Middleware
 app.use((0, cors_1.default)({
-    origin: env_1.env.FRONTEND_URL,
+    origin: [
+        'https://ai-study-platform-kh4u.vercel.app',
+        'https://ai-study-platform-kh4u-git-main-btshivani21-4163s-projects.vercel.app',
+        'http://localhost:3000',
+        'http://localhost:5173',
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
