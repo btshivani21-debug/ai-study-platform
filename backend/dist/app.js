@@ -13,12 +13,15 @@ const routes_3 = __importDefault(require("./modules/progress/routes"));
 const app = (0, express_1.default)();
 // Middleware
 app.use((0, cors_1.default)({
-    origin: [
-        'https://ai-study-platform-kh4u.vercel.app',
-        'https://ai-study-platform-kh4u-git-main-btshivani21-4163s-projects.vercel.app',
-        'http://localhost:3000',
-        'http://localhost:5173',
-    ],
+    origin: (origin, callback) => {
+        if (!origin)
+            return callback(null, true);
+        if (origin.endsWith('.vercel.app') ||
+            origin.includes('localhost')) {
+            return callback(null, true);
+        }
+        callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
